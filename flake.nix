@@ -34,6 +34,7 @@
 devShell = pkgs.pkgsCross.riscv64.mkShell rec {
   nativeBuildInputs = with pkgs; [
     qemu
+    gdb
   ];
   buildInputs = with pkgs; [
 
