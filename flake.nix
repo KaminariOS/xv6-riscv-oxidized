@@ -35,6 +35,8 @@ devShell = pkgs.pkgsCross.riscv64.mkShell {
   nativeBuildInputs = with pkgs; [
     qemu
     gdb
+    rust-bindgen
+    llvmPackages.libcxxClang
   ] ++ [pinnedRust ];
   buildInputs = with pkgs; [
 

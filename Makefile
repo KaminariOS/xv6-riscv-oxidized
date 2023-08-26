@@ -115,6 +115,19 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
 .PRECIOUS: %.o
 
+
+ULLS = \
+       $U/printf.o\
+       $U/ulib.o\
+       $U/umalloc.o\
+       $U/usys.o\
+
+$U/_rusty: FORCE $(ULLS) 
+	cd rusty-xv6;make
+
+FORCE: 
+
+
 UPROGS=\
 	$U/_cat\
 	$U/_echo\
@@ -134,7 +147,8 @@ UPROGS=\
 	$U/_zombie\
 	$U/_rusty\
 
-fs.img: mkfs/mkfs README $(UPROGS)
+
+fs.img: mkfs/mkfs README $(UPROGS) 
 	mkfs/mkfs fs.img README $(UPROGS)
 
 -include kernel/*.d user/*.d
