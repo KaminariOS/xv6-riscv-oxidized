@@ -9,6 +9,6 @@ XV6PATH ?= ..
 # clean:
 # 	rm *.o _rusty
 all:
-	RUSTFLAGS="-Clink-args=../user/printf.o -Clink-args=../user/ulib.o -Clink-args=../user/usys.o -Clink-args=../user/umalloc.o -Clink-args=-z  -Clink-args=max-page-size=4096 -Clink-args=-N -Clink-args=-e -Clink-args=main -Clink-args=-Ttext -Clink-args=0" cargo b --target riscv64gc-unknown-none-elf
-	cp target/riscv64gc-unknown-none-elf/debug/rusty-risc ../user/_rusty 
+	RUSTFLAGS="-Clink-args=../user/printf.o -Clink-args=../user/ulib.o -Clink-args=../user/usys.o -Clink-args=../user/umalloc.o -Clink-args=-z  -Clink-args=max-page-size=4096 -Clink-args=-N -Clink-args=-e -Clink-args=main -Clink-args=-Ttext -Clink-args=0" cargo b -r --target riscv64gc-unknown-none-elf
+	cp target/riscv64gc-unknown-none-elf/release/rusty-risc ../user/_rusty 
 
