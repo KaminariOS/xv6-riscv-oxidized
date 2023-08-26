@@ -1,4 +1,7 @@
+#[allow(non_camel_case_types)]
 type int = i32;
+
+#[allow(dead_code)]
 extern "C" {
     pub fn printf(s: *const u8, args: ...);
     pub fn exit(status: int) -> int;
