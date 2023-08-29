@@ -21,7 +21,7 @@
         ];
       };
     pinnedRust = pkgs.rust-bin.nightly.${nightlyVersion}.default.override {
-      extensions = ["rustc-dev" "rust-src" "rust-analyzer-preview" ];
+      extensions = ["rustc-dev" "rust-src" "rust-analyzer-preview" "llvm-tools-preview"];
       targets = [ "riscv64gc-unknown-none-elf" ];
     };
     # rustPlatform = pkgs.makeRustPlatform {
@@ -35,12 +35,8 @@ devShell = pkgs.pkgsCross.riscv64.mkShell {
   nativeBuildInputs = with pkgs; [
     qemu
     gdb
-    rust-bindgen
-    llvmPackages.libcxxClang
+    cargo-binutils
   ] ++ [pinnedRust ];
-  buildInputs = with pkgs; [
-
-  ];
 
   shellHook = ''
   '';

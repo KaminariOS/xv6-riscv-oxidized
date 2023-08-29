@@ -16,22 +16,10 @@ extern "C" {
     pub fn uptime() -> int;
     pub fn malloc(s: uint) -> *mut u8;
     pub fn read(_: int, _: *mut u8, _: int);
-}
-
-#[macro_export]
-macro_rules! print {
-    ($fmt: literal $(, $($arg: tt)+)?) => {
-        printf(concat!($fmt, "\0").as_bytes().as_ptr() $(, $($arg)+)?);
-    }
+    pub fn write(_: int, _: *const u8, _: int);
 }
 
 
-#[macro_export]
-macro_rules! println {
-    ($fmt: literal $(, $($arg: tt)+)?) => {
-        printf(concat!($fmt, "\n\0").as_bytes().as_ptr() $(, $($arg)+)?)
-    };
-    () => {
-        print!("\n")
-    }
-}
+
+#[no_mangle]
+pub static puts: unsafe extern "C" fn(s: *const u8, args: ...) = printf;
