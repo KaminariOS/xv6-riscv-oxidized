@@ -1,8 +1,6 @@
 #![no_std]
 #![no_main]
 
-// mod ulib;
-// use ulib::*;
 use user_lib::*;
 
 #[no_mangle]

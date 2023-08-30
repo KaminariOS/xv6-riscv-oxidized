@@ -14,6 +14,7 @@ pub use syscall::*;
 #[link_section = ".text.entry"]
 pub unsafe extern "C" fn _start() -> ! {
     // clear_bss();
+    println!("From start");
     exit(main());
     panic!("unreachable after sys_exit!");
 }
