@@ -78,6 +78,7 @@ pipewrite(struct pipe *pi, uint64 addr, int n)
 {
   int i = 0;
   struct proc *pr = myproc();
+  char buf[PIPESIZE];
 
   acquire(&pi->lock);
   while(i < n){
@@ -89,13 +90,24 @@ pipewrite(struct pipe *pi, uint64 addr, int n)
       wakeup(&pi->nread);
       sleep(&pi->nwrite, &pi->lock);
     } else {
-      char ch;
-      if(copyin(pr->pagetable, &ch, addr + i, 1) == -1)
+      // char ch;
+      int nwritable = pi->nread + PIPESIZE - pi->nwrite;
+      nwritable = nwritable <= n? nwritable: n;
+      
+      if(copyin(pr->pagetable, buf, addr + i, nwritable) == -1)
         break;
-      pi->data[pi->nwrite++ % PIPESIZE] = ch;
-      i++;
+      // pi->data[pi->nwrite++ % PIPESIZE] = ch;
+      // i++;
+      for (int j = 0; j < nwritable; j++) {
+          pi->data[pi->nwrite++ % PIPESIZE] = buf[j];
+      }
+      i += nwritable;
+      break;
     }
   }
+  // while (i < n) {
+  //     pi->data[pi->nwrite++ % PIPESIZE] = buf[i++];
+  // }
   wakeup(&pi->nread);
   release(&pi->lock);
 
@@ -107,8 +119,8 @@ piperead(struct pipe *pi, uint64 addr, int n)
 {
   int i;
   struct proc *pr = myproc();
-  char ch;
 
+  char buf[PIPESIZE];
   acquire(&pi->lock);
   while(pi->nread == pi->nwrite && pi->writeopen){  //DOC: pipe-empty
     if(killed(pr)){
@@ -117,13 +129,20 @@ piperead(struct pipe *pi, uint64 addr, int n)
     }
     sleep(&pi->nread, &pi->lock); //DOC: piperead-sleep
   }
+
   for(i = 0; i < n; i++){  //DOC: piperead-copy
     if(pi->nread == pi->nwrite)
       break;
-    ch = pi->data[pi->nread++ % PIPESIZE];
-    if(copyout(pr->pagetable, addr + i, &ch, 1) == -1)
-      break;
+    buf[i] = pi->data[pi->nread++ % PIPESIZE];
   }
+  // for(i = 0; i < n; i++){  //DOC: piperead-copy
+  //   // if(pi->nread == pi->nwrite)
+  //   //   break;
+  //   // ch = pi->data[pi->nread++ % PIPESIZE];
+  //   if(copyout(pr->pagetable, addr, buf, n) == -1)
+  //     break;
+  // }
+  copyout(pr->pagetable, addr, buf, i);
   wakeup(&pi->nwrite);  //DOC: piperead-wakeup
   release(&pi->lock);
   return i;
