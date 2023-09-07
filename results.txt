@@ -1,0 +1,11 @@
+modified vm.c in vmc branch
+
+Performace: 
+
+Unmodified: 113 
+
+Copy-in & out: 23
+
+vmc: 111(can only be triggered if src and dst are 8-byte aligned)
+
+Copy-in&out vm 64bit: 23 (can only be triggered if src and dst are 8-byte aligned)
