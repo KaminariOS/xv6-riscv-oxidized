@@ -3,6 +3,27 @@ type int = i32;
 #[allow(non_camel_case_types)]
 type uint = u32;
 
+const SYSCALL_RING: usize = 22; 
+
+fn syscall(id: usize, args: [usize; 3]) -> isize {
+    let mut ret: isize;
+    unsafe {
+        core::arch::asm!(
+            "ecall",
+            inlateout("x10") args[0] => ret,
+            in("x11") args[1],
+            in("x12") args[2],
+            in("x17") id
+        );
+    }
+    ret
+}
+
+
+pub fn sys_ring(fd: usize) -> isize {
+    syscall(SYSCALL_RING, [fd, 0, 0])
+}
+
 #[allow(dead_code)]
 extern "C" {
     pub fn printf(s: *const u8, args: ...);

@@ -43,7 +43,7 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
             // dup(pipes[0]);
             for i in 0..TIMES {
                 let loc = pointer.add(i * BUFF);
-                core::ptr::write(loc, 9);
+                // core::ptr::write(loc, 9);
                 write(pipes[1], loc, BUFF as _);
             }
             close(pipes[1]);

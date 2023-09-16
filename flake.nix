@@ -36,9 +36,12 @@ devShell = pkgs.pkgsCross.riscv64.mkShell {
     qemu
     gdb
     cargo-binutils
+    gcc8
+    gnumake
   ] ++ [pinnedRust ];
 
   shellHook = ''
+  export PATH=${pkgs.gcc8}/bin:$PATH
   '';
 };
 

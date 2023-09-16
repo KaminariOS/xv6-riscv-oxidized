@@ -79,6 +79,7 @@ sys_read(void)
   return fileread(f, p, n);
 }
 
+// uint64 rust_function(uint64);
 uint64
 sys_write(void)
 {
@@ -90,9 +91,14 @@ sys_write(void)
   argint(2, &n);
   if(argfd(0, 0, &f) < 0)
     return -1;
-
+  // rust_function(p);
   return filewrite(f, p, n);
 }
+
+// uint64 test_print(uint64 p) {
+//   struct file* f = myproc()->ofile[0];
+//   return filewrite(f, p, 1);
+// }
 
 uint64
 sys_close(void)

@@ -1,6 +1,10 @@
 K=kernel
 U=user
 
+
+$K/libkrusty.a: FORCE  
+	cd krusty;make
+
 OBJS = \
   $K/entry.o \
   $K/start.o \
@@ -28,7 +32,8 @@ OBJS = \
   $K/sysfile.o \
   $K/kernelvec.o \
   $K/plic.o \
-  $K/virtio_disk.o
+  $K/virtio_disk.o\
+  $K/libkrusty.a\
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
@@ -124,8 +129,12 @@ ULLS = \
        $U/umalloc.o\
        $U/usys.o\
 
-$U/_pb: FORCE $(ULLS) 
+Rusty: FORCE $(ULLS) 
 	cd rusty-xv6;make
+
+$U/_pb: Rusty
+
+$U/_rb: Rusty
 
 FORCE: 
 
@@ -148,6 +157,7 @@ UPROGS=\
 	$U/_wc\
 	$U/_zombie\
 	$U/_pb\
+	$U/_rb\
 
 
 fs.img: mkfs/mkfs README $(UPROGS) 
