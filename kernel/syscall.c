@@ -30,7 +30,7 @@ fetchstr(uint64 addr, char *buf, int max)
   return strlen(buf);
 }
 
-static uint64
+uint64
 argraw(int n)
 {
   struct proc *p = myproc();

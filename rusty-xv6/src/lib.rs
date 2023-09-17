@@ -7,8 +7,10 @@
 pub mod console;
 mod lang_items;
 mod syscall;
+mod user_ring;
 
 pub use syscall::*;
+pub use user_ring::ringbuf;
 
 #[no_mangle]
 #[link_section = ".text.entry"]

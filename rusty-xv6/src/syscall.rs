@@ -3,7 +3,7 @@ type int = i32;
 #[allow(non_camel_case_types)]
 type uint = u32;
 
-const SYSCALL_RING: usize = 22; 
+pub const SYSCALL_RING: usize = 22; 
 const SYSCALL_WRITE: usize = 16; 
 const SYSCALL_DUP: usize = 10;
 const SYSCALL_OPEN: usize = 15;
@@ -18,7 +18,7 @@ const SYSCALL_UPTIME: usize = 14;
 const SYSCALL_WAITPID: usize = 3;
 const SYSCALL_SBRK: usize = 12;
 
-fn syscall(id: usize, args: [usize; 3]) -> isize {
+pub fn syscall(id: usize, args: [usize; 3]) -> isize {
     let mut ret: isize;
     unsafe {
         core::arch::asm!(
@@ -30,11 +30,6 @@ fn syscall(id: usize, args: [usize; 3]) -> isize {
         );
     }
     ret
-}
-
-
-pub fn sys_ring(fd: usize) -> isize {
-    syscall(SYSCALL_RING, [fd, 0, 0])
 }
 
 
