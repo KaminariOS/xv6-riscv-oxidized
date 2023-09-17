@@ -7,7 +7,7 @@ use user_lib::*;
 pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
     unsafe {
         let mut pipes = [0; 2];
-        if pipe(&mut pipes as *mut [i32; 2]) != 0 {
+        if pipe(&mut pipes) != 0 {
             println!("Pipe error");
             exit(-1);
         }
@@ -28,7 +28,7 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
             let start_time = uptime();
             for i in 0..TIMES {
                 let loc = pointer.add(i * BUFF);
-                read(pipes[0], loc, BUFF as _);
+                read(pipes[0] as _, core::slice::from_raw_parts_mut(loc, BUFF)); 
                 let val = core::ptr::read(loc); 
                 if val != 9 {
                     println!("Fuck, get {}", val as i32);
@@ -43,8 +43,8 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
             // dup(pipes[0]);
             for i in 0..TIMES {
                 let loc = pointer.add(i * BUFF);
-                // core::ptr::write(loc, 9);
-                write(pipes[1], loc, BUFF as _);
+                core::ptr::write(loc, 9);
+                write(pipes[1] as _, core::slice::from_raw_parts_mut(loc, BUFF as _));
             }
             close(pipes[1]);
             close(pipes[0]);

@@ -7,9 +7,7 @@ const STDOUT: usize = 1;
 
 impl Write for Stdout {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        unsafe {
-            write(STDOUT as _, s.as_bytes().as_ptr(), s.len() as _);
-        }
+        write(STDOUT as _, s.as_bytes());
         Ok(())
     }
 }
