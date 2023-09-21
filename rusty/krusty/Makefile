@@ -1,6 +1,6 @@
-XV6PATH ?= ..
-XV6_USER_PATH ?= ../user
-XV6_KERNEL_PATH ?= ../kernel
+XV6PATH ?= $(realpath ../..)
+XV6_USER_PATH ?= ${XV6PATH}/user
+XV6_KERNEL_PATH ?= ${XV6PATH}/kernel
 TARGET := riscv64gc-unknown-none-elf
 MODE := release
 APP_DIR := src/bin

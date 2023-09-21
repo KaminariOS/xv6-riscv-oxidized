@@ -35,24 +35,24 @@ struct RingBufInner([Option<RingBuf>; MAX_RINGBUFS]);
 
 impl RingBufInner {
     fn close(&mut self, name: BufferName) {
-        let mut found = None;
-        for (i, buf) in self.0.iter_mut().enumerate() {
-            if let Some(ref mut buf) = 
-                buf.filter(|b| b.name == name) {
-                found = Some((i, buf));
-                break;
-            }
-        }
-
-        let (index, buf) = found.expect("Ring must exists"); 
-        let count = buf.ref_count;
-        assert!(count > 0);
-        if count == 1 {
-            //TODO free pages
-            self.0[index] = None;
-        } else {
-            buf.ref_count = count - 1;
-        } 
+        // let mut found = None;
+        // for (i, buf) in self.0.iter_mut().enumerate() {
+        //     if let Some(ref mut buf) = 
+        //         buf.filter(|b| b.name == name) {
+        //         found = Some((i, buf));
+        //         break;
+        //     }
+        // }
+        //
+        // let (index, buf) = found.expect("Ring must exists"); 
+        // let count = buf.ref_count;
+        // assert!(count > 0);
+        // if count == 1 {
+        //     //TODO free pages
+        //     self.0[index] = None;
+        // } else {
+        //     buf.ref_count = count - 1;
+        // } 
     }
 
     fn open(&mut self, name: BufferName) -> Option<Addr> {
@@ -106,7 +106,7 @@ pub unsafe extern "C" fn sys_ring() {
         if open {
             // mmap and write addr
         } else {
-            bufs.close(i);
+            // bufs.close(i);
         }
     } else {
         if open {

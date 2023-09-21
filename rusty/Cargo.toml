@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "krusty",
+    "rusty-xv6",
+    "shared"
+]

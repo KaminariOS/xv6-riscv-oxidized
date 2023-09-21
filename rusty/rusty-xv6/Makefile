@@ -1,5 +1,5 @@
-XV6PATH ?= ..
-XV6_USER_PATH ?= ../user
+XV6PATH ?= $(realpath ../..)
+XV6_USER_PATH ?= ${XV6PATH}/user
 TARGET := riscv64gc-unknown-none-elf
 MODE := release
 APP_DIR := src/bin
