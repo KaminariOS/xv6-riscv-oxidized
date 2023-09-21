@@ -1,7 +1,4 @@
-#[allow(non_camel_case_types)]
-type int = i32;
-#[allow(non_camel_case_types)]
-type uint = u32;
+use shared::*;
 
 pub const SYSCALL_RING: usize = 22; 
 const SYSCALL_WRITE: usize = 16; 

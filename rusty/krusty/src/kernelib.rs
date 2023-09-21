@@ -1,8 +1,5 @@
+use shared::*;
 
-#[allow(non_camel_case_types)]
-type int = i32;
-#[allow(non_camel_case_types)]
-type uint = u32;
 #[allow(non_camel_case_types)]
 type pagetable_t = usize;
 
