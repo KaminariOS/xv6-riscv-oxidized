@@ -29,20 +29,23 @@
     #   cargo = pinnedRust;
     # };
     #cargoPlay = pkgs.cargo-feature.override { inherit rustPlatform; };
+    # riscv64pkgs = pkgs.pkgsCross.riscv64;
   in {
     
-devShell = pkgs.pkgsCross.riscv64.mkShell {
+      devShell = pkgs.pkgsCross.riscv64.mkShell.override {
+          # stdenv=riscv64pkgs.gcc8Stdenv;
+      } {
   nativeBuildInputs = with pkgs; [
     qemu
     gdb
     cargo-binutils
-    gcc8
+    # gcc8
     gnumake
   ] ++ [pinnedRust ];
 
-  shellHook = ''
-  export PATH=${pkgs.gcc8}/bin:$PATH
-  '';
+  # shellHook = ''
+  # export PATH=${pkgs.gcc8}/bin:$PATH
+  # '';
 };
 
   });
