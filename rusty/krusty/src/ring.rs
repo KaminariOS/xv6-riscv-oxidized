@@ -1,12 +1,7 @@
 use core::{ptr, mem};
 use spin::Mutex;
 use crate::kernelib::*;
-
-const MAX_RINGBUFS: usize = 10;
-const RINGBUF_SIZE: usize = 16;
-
-pub const MAX_NAME_LEN: usize = 16;
-const PAGE_SIZE: usize = 4 * 1 << 10;
+use shared::*;
 
 #[repr(C)]
 struct Book {
@@ -14,7 +9,7 @@ struct Book {
     write: usize,
 }
 
-#[repr(C)]
+#[repr(transparent)]
 struct Page {
     page_inner: [u8; PAGE_SIZE]
 }
@@ -28,8 +23,25 @@ struct RingBuf {
     book: *mut Book,
 }
 
+impl RingBuf {
+    fn free_pages(&mut self) {
+        unsafe {
+            self.buf.iter_mut().for_each(|&mut page| kfree(page as _));
+            // kfree(self.book);
+        }
+    }
+
+    fn new() 
+        // -> Self 
+        {
+        let mut buf = [core::ptr::null_mut::<u8>(); RINGBUF_SIZE];
+        unsafe {
+                
+        }
+    }
+}
+
 type BufferName =[u8; MAX_NAME_LEN];
-type Addr = usize;
 
 struct RingBufInner([Option<RingBuf>; MAX_RINGBUFS]);
 
