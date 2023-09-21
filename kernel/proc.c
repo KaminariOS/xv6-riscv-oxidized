@@ -89,6 +89,10 @@ myproc(void)
   return p;
 }
 
+pagetable_t get_pagetable() {
+  return myproc()->pagetable;
+}
+
 int
 allocpid()
 {

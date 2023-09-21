@@ -3,6 +3,8 @@
 type int = i32;
 #[allow(non_camel_case_types)]
 type uint = u32;
+#[allow(non_camel_case_types)]
+type pagetable_t = usize;
 
 #[allow(dead_code)]
 extern "C" {
@@ -12,6 +14,9 @@ extern "C" {
     pub fn kfree(_: *mut u8);
     pub fn argraw(_: uint) -> usize;
     pub fn argstr(_: uint, _: *mut u8, max: uint) -> isize;
+    pub fn get_pagetable() -> pagetable_t;
+    pub fn copyout(_: pagetable_t, dst: *mut u8, src: *const u8, len: usize) -> int;
+    pub fn mappages(pagetable: pagetable_t, va: usize, size: usize, pa: usize, perm: int) -> int;
 }
 
 pub fn argstr_sys(n: usize, buf: &mut [u8]) -> isize {
