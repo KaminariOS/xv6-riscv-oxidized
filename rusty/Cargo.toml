@@ -5,3 +5,6 @@ members = [
     "rusty-xv6",
     "shared"
 ]
+
+[workspace.dependencies]
+linked_list_allocator = "0.10.5"

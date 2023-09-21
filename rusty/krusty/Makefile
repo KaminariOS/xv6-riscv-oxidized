@@ -11,10 +11,10 @@ BINS := $(patsubst $(APP_DIR)/%.rs, $(TARGET_DIR)/%.bin, $(APPS))
 LIB := libkrusty
 
 check: 
-	RUSTFLAGS="-Clink-args=-z -Clink-args=max-page-size=4096 -Clink-args=-N" cargo check --target $(TARGET)
+	cargo check --target $(TARGET)
 
 all:
-	RUSTFLAGS="-Clink-args=-z -Clink-args=max-page-size=4096 -Clink-args=-N" cargo b -r --target $(TARGET)
+	cargo b -r --target $(TARGET)
 	cp $(TARGET_DIR)/$(LIB).a $(XV6_KERNEL_PATH)
 	# $(foreach elf, $(ELFS), cp $(elf) $(patsubst $(TARGET_DIR)/%, $(XV6_KERNEL_PATH)/_%, $(elf));)
 
