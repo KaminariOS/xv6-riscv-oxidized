@@ -6,6 +6,8 @@
 
 volatile static int started = 0;
 
+extern void init_logger();
+
 // start() jumps here in supervisor mode on all CPUs.
 void
 main()
@@ -28,6 +30,7 @@ main()
     iinit();         // inode table
     fileinit();      // file table
     virtio_disk_init(); // emulated hard disk
+    init_logger();
     userinit();      // first user process
     __sync_synchronize();
     started = 1;

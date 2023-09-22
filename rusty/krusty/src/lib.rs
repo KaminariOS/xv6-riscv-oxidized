@@ -7,6 +7,7 @@ pub mod console;
 mod kernelib;
 mod lang_items;
 mod ring;
+mod logger;
 
 use kernelib::*;
 pub use ring::sys_ring;

@@ -1,4 +1,5 @@
 use core::{ptr, mem, array};
+use log::{info, warn};
 use spin::Mutex;
 use crate::kernelib::*;
 use shared::*;
@@ -135,6 +136,7 @@ pub unsafe extern "C" fn sys_ring() -> usize {
     }
     let addr_new = 8usize;
     copyout_addr(addr, &addr_new as *const usize as _);
+    warn!("Kernel log: test");
     println!("❤️ Kernel Test rc: {}", core::str::from_utf8(&name).unwrap());
     0
 }
