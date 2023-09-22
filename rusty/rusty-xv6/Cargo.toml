@@ -8,6 +8,10 @@ edition = "2021"
 [dependencies]
 spin = "0.9.8"
 shared = { path = "../shared" }
+linked_list_allocator.workspace = true
+lazy_static.workspace = true
+log.workspace = true
+ansi_rgb.workspace = true
 
 [profile.release]
 # strip = true

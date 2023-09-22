@@ -4,7 +4,7 @@ U=user
 RUSTPATH := rusty
 
 $K/libkrusty.a: FORCE  
-	cd ${RUSTPATH}/krusty;make
+	cd ${RUSTPATH}/krusty;make all
 
 OBJS = \
   $K/entry.o \
@@ -131,7 +131,7 @@ ULLS = \
        $U/usys.o\
 
 Rusty: FORCE $(ULLS) 
-	cd ${RUSTPATH}/rusty-xv6;make
+	cd ${RUSTPATH}/rusty-xv6;make all
 
 $U/_pb: Rusty
 

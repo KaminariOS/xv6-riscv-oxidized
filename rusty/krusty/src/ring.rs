@@ -15,9 +15,7 @@ struct Page {
     page_inner: *mut u8
 }
 
-unsafe impl Send for Page {
-    
-}
+unsafe impl Send for Page{}
 
 impl Page {
     fn new() -> Self {
@@ -118,35 +116,25 @@ unsafe fn copyout_addr(dst: *mut u8, src: *const u8) {
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn sys_ring() {
+pub unsafe extern "C" fn sys_ring() -> usize {
     let mut name = [0; MAX_NAME_LEN];
     let res = argstr_sys(0, &mut name);
+    if res == -1 {
+        println!("Failed to get name");
+        return 1;
+    }
     let open = argraw(1) != 0;
     let addr = argraw(2) as *mut u8;
 
     let mut bufs = RING_BUFS.lock();
-    let mut found = None;
-    for (i, buf) in bufs.0.iter_mut().enumerate() {
-        if let Some(mut buf) = buf.as_mut().filter(|b| b.name == name) {
-            found = Some(i);
-            break;
-        }
-    }
-    if let Some(i) = found {
-        if open {
-            // mmap and write addr
-        } else {
-            // bufs.close(i);
-        }
+    if open {
+        bufs.open(name);
+        // alloc map and write addr
     } else {
-        if open {
-
-            // alloc map and write addr
-        } else {
-            panic!("Close a nonexist ring");
-        }
+        bufs.close(name);
     }
     let addr_new = 8usize;
     copyout_addr(addr, &addr_new as *const usize as _);
-    println!("Test rc: {}", core::str::from_utf8(&name).unwrap());
+    println!("❤️ Kernel Test rc: {}", core::str::from_utf8(&name).unwrap());
+    0
 }

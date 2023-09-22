@@ -13,6 +13,8 @@ pub const RINGBUF_SIZE: usize = 16;
 pub const MAX_NAME_LEN: usize = 16;
 pub const PAGE_SIZE: usize = 4 * 1 << 10;
 
+// pub mod logger;
+
 #[macro_export]
 macro_rules! array {
     (@accum (0, $($_es:expr),*) -> ($($body:tt)*))

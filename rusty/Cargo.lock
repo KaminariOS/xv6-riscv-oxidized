@@ -3,17 +3,34 @@
 version = 3
 
 [[package]]
+name = "ansi_rgb"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a730095eb14ee842a0f1e68504b85c8d4a19b1ef2ac2a9b4debf0ed982f9b08a"
+dependencies = [
+ "rgb",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "bytemuck"
+version = "1.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "374d28ec25809ee0e23827c2ab573d729e293f281dfe393500e7ad618baa61c6"
+
+[[package]]
 name = "krusty"
 version = "0.1.0"
 dependencies = [
+ "ansi_rgb",
  "lazy_static",
  "linked_list_allocator",
+ "log",
  "shared",
  "spin 0.9.8",
 ]
@@ -47,6 +64,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "log"
+version = "0.4.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
+
+[[package]]
+name = "rgb"
+version = "0.8.36"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "20ec2d3e3fc7a92ced357df9cebd5a10b6fb2aa1ee797bf7e9ce2f17dffc8f59"
+dependencies = [
+ "bytemuck",
+]
+
+[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -55,6 +87,10 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 [[package]]
 name = "shared"
 version = "0.1.0"
+dependencies = [
+ "ansi_rgb",
+ "log",
+]
 
 [[package]]
 name = "spin"
@@ -84,6 +120,10 @@ dependencies = [
 name = "user_lib"
 version = "0.1.0"
 dependencies = [
+ "ansi_rgb",
+ "lazy_static",
+ "linked_list_allocator",
+ "log",
  "shared",
  "spin 0.9.8",
 ]

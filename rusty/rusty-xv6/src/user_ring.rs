@@ -1,7 +1,8 @@
 use crate::syscall::*;
+use shared::*;
 
-const MAX_RINGBUFS: usize = 10;
-const RINGBUF_SIZE: usize = 16;
+struct RingbufsManager {
+}
 
 struct BUFS ([Option<UserRingBuf>; MAX_RINGBUFS]);
 

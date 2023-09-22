@@ -9,6 +9,9 @@ mod lang_items;
 mod syscall;
 mod user_ring;
 
+pub mod logger;
+// pub use shared::logger;
+
 pub use syscall::*;
 pub use user_ring::ringbuf;
 
