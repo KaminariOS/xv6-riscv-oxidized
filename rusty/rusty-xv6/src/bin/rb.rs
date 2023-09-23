@@ -14,6 +14,8 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
     warn!("Test log");
     let mut ptr = 0usize;
     ringbuf("test\0", true, &mut ptr);
-    println!("User: Val: {:?}", ptr);
+    println!("User: Val: 0x{:x}", ptr);
+    ringbuf("test\0", false, &mut ptr);
+    println!("User: Val: 0x{:x}", ptr);
     0
 }

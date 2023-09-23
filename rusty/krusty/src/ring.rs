@@ -1,5 +1,5 @@
 use core::{ptr, mem, array};
-use log::{info, warn};
+use log::{info, warn, error};
 use spin::Mutex;
 use crate::kernelib::*;
 use shared::*;
@@ -55,6 +55,62 @@ impl RingBuf {
             };
             ringbuf
     }
+
+    fn map(&self, start_va: usize) {
+        unsafe {
+        let pagetable = get_pagetable();
+        self.buf.iter()
+            .enumerate().
+            for_each(|(i, page)| 
+                {
+                let mut res = mappages(
+                    pagetable, 
+                         start_va + page_offset(i), 
+                         PAGE_SIZE, 
+                         page.page_inner as _, 
+                         PTE_U_BUFF);
+                info!("First mapping");
+                if res != 0 {
+                    error!("Mapping error first");
+                }
+
+                let res = mappages(
+                    pagetable, 
+                         start_va + page_offset(i) + RINGBUF_SIZE * PAGE_SIZE, 
+                         PAGE_SIZE, 
+                         page.page_inner as _, 
+                         PTE_U_BUFF);
+
+                info!("Second mapping");
+                if res != 0 {
+                    error!("Mapping error second");
+                }
+                }
+
+        );
+
+                let res = mappages(pagetable, 
+                                   start_va + BOOK_OFFSET * PAGE_SIZE, 
+                                   PAGE_SIZE,
+                                    self.book.page_inner as _,
+                                    PTE_U_BUFF
+                                   );
+
+                info!("Book mapping");
+                if res != 0 {
+                    error!("Mapping error book");
+                }
+        }
+    }
+
+    fn unmap(&self, start_va: usize) {
+        unsafe {
+        let pagetable = get_pagetable();
+        uvmunmap(pagetable, start_va, RINGBUF_SIZE * 2, false);
+        uvmunmap(pagetable, start_va + BOOK_OFFSET * PAGE_SIZE, 1, false);
+        info!("Unmapping");
+        }
+    }
 }
 
 type BufferName =[u8; MAX_NAME_LEN];
@@ -71,9 +127,10 @@ impl RingBufInner {
                 break;
             }
         }
-
+        // Need to unmap
         let (index, buf) = found.expect("Ring must exist"); 
         let count = buf.ref_count;
+        buf.unmap(get_ringbuf_start_va(index));
         assert!(count > 0);
         if count == 1 {
             self.0[index] = None;
@@ -93,11 +150,16 @@ impl RingBufInner {
             // map again?
             // return Some(buf.buf);
         } else {
-            let slot = self.0.iter_mut().find(|slot| slot.is_none());
-            if let Some(slot) = slot {
+            let slot = self.0.iter_mut()
+                .enumerate()
+                .find(|(i, slot)| slot.is_none());
+            if let Some((i, slot)) = slot {
                 let ringbuf = RingBuf::new(name);                
                 // map
+                let start_va = get_ringbuf_start_va(i);
+                ringbuf.map(start_va);
                 *slot = Some(ringbuf);
+                return Some(start_va)
                 // return mapped addr
             } else {
                 return None;
@@ -106,6 +168,7 @@ impl RingBufInner {
         None
     }
 }
+
 
 lazy_static! {
     static ref RING_BUFS: Mutex<RingBufInner> = Mutex::new(RingBufInner(array::from_fn(|_| None)));
@@ -127,16 +190,20 @@ pub unsafe extern "C" fn sys_ring() -> usize {
     let open = argraw(1) != 0;
     let addr = argraw(2) as *mut u8;
 
+    info!("❤️ BufferName: {}", core::str::from_utf8(&name).unwrap());
     let mut bufs = RING_BUFS.lock();
     if open {
-        bufs.open(name);
+        if let Some(ring_start) = bufs.open(name) {
+            copyout_addr(addr, &ring_start as *const usize as _);
+        } else {
+            return 1;
+        }
         // alloc map and write addr
     } else {
         bufs.close(name);
     }
-    let addr_new = 8usize;
-    copyout_addr(addr, &addr_new as *const usize as _);
+    // let addr_new = 8usize;
+    // copyout_addr(addr, &addr_new as *const usize as _);
     warn!("Kernel log: test");
-    println!("❤️ Kernel Test rc: {}", core::str::from_utf8(&name).unwrap());
     0
 }
