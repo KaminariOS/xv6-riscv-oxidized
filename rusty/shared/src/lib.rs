@@ -29,7 +29,19 @@ pub const UNUSED_TOP: usize = MAXVA - 10 * PAGE_SIZE;
 pub const RINGBUFS_START: usize = UNUSED_TOP - MAX_RINGBUFS * RINGBUF_MAPPED_SIZED * PAGE_SIZE;
 
 pub const fn get_ringbuf_start_va(i: usize) -> usize {
-    i * RINGBUF_MAPPED_SIZED + RINGBUFS_START
+    i * RINGBUF_MAPPED_SIZED * PAGE_SIZE + RINGBUFS_START
+}
+
+pub const fn get_ringbuf_size() -> usize {
+    RINGBUF_MAPPED_SIZED * PAGE_SIZE
+}
+
+pub const fn get_ringbuf_index(addr: usize) -> usize {
+    (addr - RINGBUFS_START) / (RINGBUF_MAPPED_SIZED * PAGE_SIZE)
+}
+
+pub const fn get_ringbuf_book_start_va(i: usize) -> usize {
+    get_ringbuf_start_va(i) + BOOK_OFFSET * PAGE_SIZE
 }
 
 pub const fn page_offset(i: usize) -> usize {
