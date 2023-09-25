@@ -12,10 +12,17 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
     debug!("Test log");
     trace!("Test log");
     warn!("Test log");
-    let mut ptr = 0usize;
-    ringbuf("test\0", true, &mut ptr);
-    println!("User: Val: 0x{:x}", ptr);
-    ringbuf("test\0", false, &mut ptr);
-    println!("User: Val: 0x{:x}", ptr);
+    let pid = fork();
+    if let Ok((index, addr)) = ringbuf("test\0", true) {
+        if pid != 0 {
+            // let () =
+            let mut exit_code = 0; 
+            wait(&mut exit_code);
+        } else {
+        }
+        ringbuf("test\0", false).unwrap();
+    }
+    // println!("User: Val: 0x{:x}", ptr);
+    // println!("User: Val: 0x{:x}", ptr);
     0
 }

@@ -118,7 +118,7 @@ type BufferName =[u8; MAX_NAME_LEN];
 struct RingBufInner([Option<RingBuf>; MAX_RINGBUFS]);
 
 impl RingBufInner {
-    fn close(&mut self, name: BufferName) {
+    fn close(&mut self, name: BufferName) -> Addr {
         let mut found = None;
         for (i, buf) in self.0.iter_mut().enumerate() {
             if let Some(buf) = 
@@ -137,22 +137,31 @@ impl RingBufInner {
         } else {
             buf.ref_count = count - 1;
         } 
+
+        get_ringbuf_start_va(index)
     }
 
     fn open(&mut self, name: BufferName) -> Option<Addr> {
         let found = self.0
             .iter_mut()
-            .filter_map(|i| i.as_mut())
-            .find(|b| 
+            .enumerate()
+            .filter_map(|(i, b)| {
+                if let Some(b) = b.as_mut() {
+                    Some((i, b))
+                } else {None}
+            })
+            .find(|(_, b) | 
                     b.name == name);
-        if let Some(buf) = found {
+        if let Some((i, buf)) = found {
             buf.ref_count += 1;
-            // map again?
+            let start_va = get_ringbuf_start_va(i);
+            buf.map(start_va);
+            return Some(start_va)
             // return Some(buf.buf);
         } else {
             let slot = self.0.iter_mut()
                 .enumerate()
-                .find(|(i, slot)| slot.is_none());
+                .find(|(_, slot)| slot.is_none());
             if let Some((i, slot)) = slot {
                 let ringbuf = RingBuf::new(name);                
                 // map
@@ -162,10 +171,10 @@ impl RingBufInner {
                 return Some(start_va)
                 // return mapped addr
             } else {
+                error!("Error no buf");
                 return None;
             }
         }
-        None
     }
 }
 
@@ -184,13 +193,13 @@ pub unsafe extern "C" fn sys_ring() -> usize {
     let mut name = [0; MAX_NAME_LEN];
     let res = argstr_sys(0, &mut name);
     if res == -1 {
-        println!("Failed to get name");
+        error!("Failed to get name");
         return 1;
     }
     let open = argraw(1) != 0;
     let addr = argraw(2) as *mut u8;
 
-    info!("❤️ BufferName: {}", core::str::from_utf8(&name).unwrap());
+    // info!("❤️ BufferName: {}", core::str::from_utf8(&name).unwrap());
     let mut bufs = RING_BUFS.lock();
     if open {
         if let Some(ring_start) = bufs.open(name) {
@@ -200,10 +209,11 @@ pub unsafe extern "C" fn sys_ring() -> usize {
         }
         // alloc map and write addr
     } else {
-        bufs.close(name);
+        let ring_start = bufs.close(name);
+        copyout_addr(addr, &ring_start as *const usize as _);
     }
     // let addr_new = 8usize;
     // copyout_addr(addr, &addr_new as *const usize as _);
-    warn!("Kernel log: test");
+    // warn!("Kernel log: test");
     0
 }

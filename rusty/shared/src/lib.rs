@@ -32,6 +32,10 @@ pub const fn get_ringbuf_start_va(i: usize) -> usize {
     i * RINGBUF_MAPPED_SIZED * PAGE_SIZE + RINGBUFS_START
 }
 
+pub const fn get_ringbuf_buf_size() -> usize {
+    RINGBUF_SIZE * PAGE_SIZE
+}
+
 pub const fn get_ringbuf_size() -> usize {
     RINGBUF_MAPPED_SIZED * PAGE_SIZE
 }
@@ -42,7 +46,6 @@ pub const fn get_ringbuf_index(addr: usize) -> usize {
 
 pub const fn get_ringbuf_book_start_va(i: usize) -> usize {
     get_ringbuf_start_va(i) + BOOK_OFFSET * PAGE_SIZE
->>>>>>> 129a1d6a6e165664fa6dddce454aa60eb6b9488b
 }
 
 pub const fn page_offset(i: usize) -> usize {

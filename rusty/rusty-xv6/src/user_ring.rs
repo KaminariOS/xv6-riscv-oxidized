@@ -3,6 +3,7 @@ use shared::*;
 use lazy_static::lazy_static;
 use spin::Mutex;
 use core::{array};
+use core::sync::atomic::AtomicBool;
 
 struct RingbufsManager {
 }
@@ -22,11 +23,46 @@ struct UserRingBuf {
 #[repr(C)]
 struct RingBufBook {
     nReads: usize,
-    nWrites: usize
+    nWrites: usize,
+    locked: AtomicBool,
+}
+
+impl RingBufBook {
+    fn get_diff(&self) -> usize {
+        assert!(self.nWrites >= self.nReads);
+        self.nWrites - self.nReads
+    }
+
+    fn lock(&mut self) {
+        //cas
+        while let Err(_) = self.locked.compare_exchange(false, true, core::sync::atomic::Ordering::SeqCst, core::sync::atomic::Ordering::SeqCst) {}
+    }
+
+    fn unlock(&mut self) {
+        assert!(self.locked.load(core::sync::atomic::Ordering::SeqCst));
+        self.locked.store(false, core::sync::atomic::Ordering::SeqCst)
+    }
+}
+
+
+pub fn ringbuf_start_read(ringbuf_desc: usize) -> (usize, usize) {
+    USER_RING_BUFS.lock().ringbuf_start_read(ringbuf_desc)
+}
+
+pub fn ringbuf_finish_read(ringbuf_desc: usize, bytes: usize) {
+    USER_RING_BUFS.lock().ringbuf_finish_read(ringbuf_desc, bytes)
+}
+
+pub fn ringbuf_start_write(ringbuf_desc: usize) -> (usize, usize) {
+    USER_RING_BUFS.lock().ringbuf_start_write(ringbuf_desc)
+}
+
+pub fn ringbuf_finish_write(ringbuf_desc: usize, bytes: usize) {
+    USER_RING_BUFS.lock().ringbuf_finish_write(ringbuf_desc, bytes)
 }
 
 impl BUFS {
-    pub fn ringbuf_start_read(&mut self, ringbuf_desc: usize) -> (usize, usize){
+    pub fn ringbuf_start_read(&mut self, ringbuf_desc: usize) -> (usize, usize) {
         let mut bufs = USER_RING_BUFS.lock();
         if let Some(user_ring_buf) = &mut bufs.0[ringbuf_desc] {
             // Access the fields nReads and nWrites
@@ -35,7 +71,7 @@ impl BUFS {
                 let book = unsafe { &mut *book_ptr };
                 let n_reads = book.nReads;
                 let n_writes = book.nWrites;
-                return (book.nWrites - book.nReads, user_ring_buf.buf);
+                return (book.get_diff(), user_ring_buf.buf + (book.nReads % (PAGE_SIZE * RINGBUF_SIZE) ));
             } else {
                 // Handle the case where the pointer is null
                 println!("Pointer is null");
@@ -69,7 +105,7 @@ impl BUFS {
                 let book = unsafe { &mut *book_ptr };
                 let n_reads = book.nReads;
                 let n_writes = book.nWrites;
-                return (get_ringbuf_size() - book.nWrites, user_ring_buf.buf);
+                return (get_ringbuf_buf_size() - (book.nWrites - book.nReads), user_ring_buf.buf + (book.nWrites % get_ringbuf_buf_size()));
             } else {
                 // Handle the case where the pointer is null
                 println!("Pointer is null");
@@ -96,15 +132,25 @@ impl BUFS {
 }
 
 
-pub fn ringbuf(name: &str, open: bool, addr: &mut usize) -> (isize, usize) {
-    let status_code = syscall(SYSCALL_RING, [name.as_bytes().as_ptr() as usize, open.into(), addr as *mut usize as _]);
-    let ringbuf_index = get_ringbuf_index(*addr);
-    let user_ring_buf = UserRingBuf {
-        buf: *addr,
-        book: get_ringbuf_book_start_va(ringbuf_index)
-    };
+pub fn ringbuf(name: &str, open: bool) -> Result<(usize, usize), isize> {
+    let mut addr = 0;
+    let status_code = syscall(SYSCALL_RING, [name.as_bytes().as_ptr() as usize, open.into(), (&mut addr) as *mut usize as _]);
+    let ringbuf_index = get_ringbuf_index(addr);
+    println!("Ringbuf index: {}", ringbuf_index);
     let mut bufs = USER_RING_BUFS.lock();
-    bufs.0[ringbuf_index] = Some(user_ring_buf);
-    (status_code, ringbuf_index)
+    if open {
+        let user_ring_buf = UserRingBuf {
+            buf: addr,
+            book: get_ringbuf_book_start_va(ringbuf_index)
+        };
+        bufs.0[ringbuf_index] = Some(user_ring_buf);
+    } else {
+        bufs.0[ringbuf_index] = None;
+    }
+    if status_code != 0 {
+        Err(status_code)
+    } else {
+        Ok((ringbuf_index, addr))
+    }
 }
 
