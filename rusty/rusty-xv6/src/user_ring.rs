@@ -2,8 +2,8 @@ use crate::syscall::*;
 use shared::*;
 use lazy_static::lazy_static;
 use spin::Mutex;
-use core::{array};
-use core::sync::atomic::AtomicBool;
+use core::array;
+use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 struct RingbufsManager {
 }
@@ -22,15 +22,21 @@ struct UserRingBuf {
 
 #[repr(C)]
 struct RingBufBook {
-    nReads: usize,
-    nWrites: usize,
+    n_reads: usize,
+    n_writes: usize,
     locked: AtomicBool,
+    _locked: AtomicBool,
+    test_count: AtomicUsize,
 }
 
 impl RingBufBook {
     fn get_diff(&self) -> usize {
-        assert!(self.nWrites >= self.nReads);
-        self.nWrites - self.nReads
+        assert!(self.n_writes >= self.n_reads);
+        self.n_writes - self.n_reads
+    }
+
+    fn test_count(&mut self) {
+        self.test_count.fetch_add(1, Ordering::SeqCst);
     }
 
     fn lock(&mut self) {
@@ -61,17 +67,48 @@ pub fn ringbuf_finish_write(ringbuf_desc: usize, bytes: usize) {
     USER_RING_BUFS.lock().ringbuf_finish_write(ringbuf_desc, bytes)
 }
 
+
+pub fn test_count(ringbuf_desc: usize) {
+    USER_RING_BUFS.lock().test_count(ringbuf_desc)
+}
+
+
+pub fn get_count(ringbuf_desc: usize) -> usize {
+    USER_RING_BUFS.lock().get_count(ringbuf_desc)
+}
+
 impl BUFS {
+    pub fn test_count(&mut self, ringbuf_desc: usize)  {
+        if let Some(user_ring_buf) = &mut self.0[ringbuf_desc] {
+            let  book_ptr = user_ring_buf.book as *mut RingBufBook;
+            if !book_ptr.is_null() {
+                let mut book = unsafe { &mut *book_ptr };
+                book.test_count();
+            }
+        }
+    }
+
+    pub fn get_count(&mut self, ringbuf_desc: usize) -> usize  {
+        if let Some(user_ring_buf) = &mut self.0[ringbuf_desc] {
+            let  book_ptr = user_ring_buf.book as *mut RingBufBook;
+            if !book_ptr.is_null() {
+                let mut book = unsafe { &mut *book_ptr };
+                return book.test_count.load(Ordering::SeqCst)
+            }
+        }
+        0
+    }
+
     pub fn ringbuf_start_read(&mut self, ringbuf_desc: usize) -> (usize, usize) {
-        let mut bufs = USER_RING_BUFS.lock();
-        if let Some(user_ring_buf) = &mut bufs.0[ringbuf_desc] {
+        if let Some(user_ring_buf) = &mut self.0[ringbuf_desc] {
             // Access the fields nReads and nWrites
             let  book_ptr = user_ring_buf.book as *mut RingBufBook;
             if !book_ptr.is_null() {
                 let book = unsafe { &mut *book_ptr };
-                let n_reads = book.nReads;
-                let n_writes = book.nWrites;
-                return (book.get_diff(), user_ring_buf.buf + (book.nReads % (PAGE_SIZE * RINGBUF_SIZE) ));
+                book.lock();
+                let res = (book.get_diff(), user_ring_buf.buf + (book.n_reads % (PAGE_SIZE * RINGBUF_SIZE) ));
+                book.unlock();
+                return res
             } else {
                 // Handle the case where the pointer is null
                 println!("Pointer is null");
@@ -85,27 +122,28 @@ impl BUFS {
     }
 
     pub fn ringbuf_finish_read(&mut self, ringbuf_desc: usize, bytes: usize) {
-        let mut bufs = USER_RING_BUFS.lock();
-        if let Some(user_ring_buf) = &mut bufs.0[ringbuf_desc] {
+        if let Some(user_ring_buf) = &mut self.0[ringbuf_desc] {
             // Access the fields nReads and nWrites
             let  book_ptr = user_ring_buf.book as *mut RingBufBook;
             if !book_ptr.is_null() {
                 let book = unsafe { &mut *book_ptr };
-                book.nReads += bytes;
+                book.lock();
+                book.n_reads += bytes;
+                book.unlock();
             } 
         }
     }
 
     pub fn ringbuf_start_write(&mut self, ringbuf_desc: usize) -> (usize, usize) {
-        let mut bufs = USER_RING_BUFS.lock();
-        if let Some(user_ring_buf) = &mut bufs.0[ringbuf_desc] {
+        if let Some(user_ring_buf) = &mut self.0[ringbuf_desc] {
             // Access the fields nReads and nWrites
             let  book_ptr = user_ring_buf.book as *mut RingBufBook;
             if !book_ptr.is_null() {
                 let book = unsafe { &mut *book_ptr };
-                let n_reads = book.nReads;
-                let n_writes = book.nWrites;
-                return (get_ringbuf_buf_size() - (book.nWrites - book.nReads), user_ring_buf.buf + (book.nWrites % get_ringbuf_buf_size()));
+                book.lock();
+                let res = (get_ringbuf_buf_size() - (book.n_writes - book.n_reads), user_ring_buf.buf + (book.n_writes % get_ringbuf_buf_size())); 
+                book.unlock();
+                return res;
             } else {
                 // Handle the case where the pointer is null
                 println!("Pointer is null");
@@ -119,24 +157,25 @@ impl BUFS {
     }
 
     pub fn ringbuf_finish_write(&mut self, ringbuf_desc: usize, bytes: usize) {
-        let mut bufs = USER_RING_BUFS.lock();
-        if let Some(user_ring_buf) = &mut bufs.0[ringbuf_desc] {
+        if let Some(user_ring_buf) = &mut self.0[ringbuf_desc] {
             // Access the fields nReads and nWrites
             let  book_ptr = user_ring_buf.book as *mut RingBufBook;
             if !book_ptr.is_null() {
                 let book = unsafe { &mut *book_ptr };
-                book.nWrites += bytes;
+                book.lock();
+                book.n_writes += bytes;
+                book.unlock();
             } 
         }
     }
 }
 
 
-pub fn ringbuf(name: &str, open: bool) -> Result<(usize, usize), isize> {
+pub fn ringbuf(name: &str, open: bool) -> Result<usize, isize> {
     let mut addr = 0;
     let status_code = syscall(SYSCALL_RING, [name.as_bytes().as_ptr() as usize, open.into(), (&mut addr) as *mut usize as _]);
     let ringbuf_index = get_ringbuf_index(addr);
-    println!("Ringbuf index: {}", ringbuf_index);
+    // println!("Ringbuf index: {}", ringbuf_index);
     let mut bufs = USER_RING_BUFS.lock();
     if open {
         let user_ring_buf = UserRingBuf {
@@ -150,7 +189,7 @@ pub fn ringbuf(name: &str, open: bool) -> Result<(usize, usize), isize> {
     if status_code != 0 {
         Err(status_code)
     } else {
-        Ok((ringbuf_index, addr))
+        Ok(ringbuf_index)
     }
 }
 

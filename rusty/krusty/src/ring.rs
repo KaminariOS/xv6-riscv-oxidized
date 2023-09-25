@@ -69,7 +69,7 @@ impl RingBuf {
                          PAGE_SIZE, 
                          page.page_inner as _, 
                          PTE_U_BUFF);
-                info!("First mapping");
+                // info!("First mapping");
                 if res != 0 {
                     error!("Mapping error first");
                 }
@@ -81,7 +81,7 @@ impl RingBuf {
                          page.page_inner as _, 
                          PTE_U_BUFF);
 
-                info!("Second mapping");
+                // info!("Second mapping");
                 if res != 0 {
                     error!("Mapping error second");
                 }
@@ -96,7 +96,7 @@ impl RingBuf {
                                     PTE_U_BUFF
                                    );
 
-                info!("Book mapping");
+                // info!("Book mapping");
                 if res != 0 {
                     error!("Mapping error book");
                 }
@@ -108,7 +108,7 @@ impl RingBuf {
         let pagetable = get_pagetable();
         uvmunmap(pagetable, start_va, RINGBUF_SIZE * 2, false);
         uvmunmap(pagetable, start_va + BOOK_OFFSET * PAGE_SIZE, 1, false);
-        info!("Unmapping");
+        // info!("Unmapping");
         }
     }
 }

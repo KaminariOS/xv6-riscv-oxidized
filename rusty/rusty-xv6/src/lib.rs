@@ -7,7 +7,7 @@
 pub mod console;
 mod lang_items;
 mod syscall;
-mod user_ring;
+pub mod user_ring;
 
 pub mod logger;
 // pub use shared::logger;
