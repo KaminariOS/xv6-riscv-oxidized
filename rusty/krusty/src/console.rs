@@ -1,6 +1,6 @@
 use crate::kernelib::{lock_console, unlock_console};
 
-use super::uartputc_sync;
+use super::consputc;
 use core::fmt::{self, Write};
 
 struct Stdout;
@@ -11,7 +11,7 @@ impl Write for Stdout {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         unsafe {
             lock_console();
-            s.as_bytes().iter().for_each(|&c| uartputc_sync(c as _));
+            s.as_bytes().iter().for_each(|&c| consputc(c as _));
             unlock_console();
         }
         Ok(())

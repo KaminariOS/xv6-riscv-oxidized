@@ -6,7 +6,7 @@ type pagetable_t = usize;
 #[allow(dead_code)]
 extern "C" {
     // pub fn test_print(_ :u64) -> i64;
-    pub fn uartputc_sync(_: int); 
+    pub fn consputc(_: int); 
     pub fn lock_console();
     pub fn unlock_console(); 
     pub fn kalloc() -> *mut u8;
