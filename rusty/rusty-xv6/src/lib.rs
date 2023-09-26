@@ -30,9 +30,9 @@ pub fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
 }
 
 
+#[macro_use]
 extern crate alloc;
-use alloc::vec::Vec;
-pub use alloc::string;
+pub use alloc::{string, format};
 
 #[no_mangle]
 #[link_section = ".text.entry"]
