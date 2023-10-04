@@ -16,7 +16,6 @@ pub fn print(args: fmt::Arguments) {
     Stdout.write_fmt(args).unwrap();
 }
 
-
 pub fn print_str(s: &str) {
     Stdout.write_str(s).unwrap();
 }

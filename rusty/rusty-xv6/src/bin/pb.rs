@@ -23,13 +23,13 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
         // let slice = slice::from_raw_parts_mut( pointer, TOTAL_BYTES);
         // slice.iter_mut().enumerate().for_each(|(i, x)| *x = i as u8);
         // slice[TOTAL_BYTES - 1] = 0;
-        
+
         if id != 0 {
             let start_time = uptime();
             for i in 0..TIMES {
                 let loc = pointer.add(i * BUFF);
-                read(pipes[0] as _, core::slice::from_raw_parts_mut(loc, BUFF)); 
-                let val = core::ptr::read(loc); 
+                read(pipes[0] as _, core::slice::from_raw_parts_mut(loc, BUFF));
+                let val = core::ptr::read(loc);
                 if val != 9 {
                     println!("Fuck, get {}", val as i32);
                 }
@@ -44,7 +44,10 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
             for i in 0..TIMES {
                 let loc = pointer.add(i * BUFF);
                 core::ptr::write(loc, 9);
-                write(pipes[1] as _, core::slice::from_raw_parts_mut(loc, BUFF as _));
+                write(
+                    pipes[1] as _,
+                    core::slice::from_raw_parts_mut(loc, BUFF as _),
+                );
             }
             close(pipes[1]);
             close(pipes[0]);

@@ -1,17 +1,24 @@
-use log::{Record, Level, Metadata};
-use log::{SetLoggerError, LevelFilter};
 use ansi_rgb::*;
+use log::{Level, Metadata, Record};
+use log::{LevelFilter, SetLoggerError};
 
 struct SimpleLogger;
 
-
 macro_rules! log_println {
     ($record: tt, $fg: tt) => {
-        println!("{}", format_args!("{} - {}", $record.level(), $record.args()).fg($fg()))
+        println!(
+            "{}",
+            format_args!("{} - {}", $record.level(), $record.args()).fg($fg())
+        )
     };
     ($record: tt, $fg: tt, $bg: tt) => {
-        println!("{}", format_args!("{} - {}", $record.level(), $record.args()).fg($fg()).bg($bg()))
-    }
+        println!(
+            "{}",
+            format_args!("{} - {}", $record.level(), $record.args())
+                .fg($fg())
+                .bg($bg())
+        )
+    };
 }
 
 impl log::Log for SimpleLogger {
@@ -37,6 +44,5 @@ impl log::Log for SimpleLogger {
 static LOGGER: SimpleLogger = SimpleLogger;
 
 pub fn init() -> Result<(), SetLoggerError> {
-    log::set_logger(&LOGGER)
-        .map(|()| log::set_max_level(LevelFilter::Trace))
+    log::set_logger(&LOGGER).map(|()| log::set_max_level(LevelFilter::Trace))
 }

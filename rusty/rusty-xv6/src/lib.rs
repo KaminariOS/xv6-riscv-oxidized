@@ -13,9 +13,9 @@ pub mod user_ring;
 pub mod logger;
 // pub use shared::logger;
 
+use linked_list_allocator::LockedHeap;
 pub use syscall::*;
 pub use user_ring::ringbuf;
-use linked_list_allocator::LockedHeap;
 
 const USER_HEAP_SIZE: usize = 32768;
 
@@ -29,10 +29,9 @@ pub fn handle_alloc_error(layout: core::alloc::Layout) -> ! {
     panic!("Heap allocation error, layout = {:?}", layout);
 }
 
-
 #[macro_use]
 extern crate alloc;
-pub use alloc::{string, format};
+pub use alloc::{format, string};
 
 #[no_mangle]
 #[link_section = ".text.entry"]
@@ -40,8 +39,7 @@ pub unsafe extern "C" fn _start() -> ! {
     // clear_bss();
 
     unsafe {
-        HEAP.lock()
-            .init(HEAP_SPACE.as_ptr() as _, USER_HEAP_SIZE);
+        HEAP.lock().init(HEAP_SPACE.as_ptr() as _, USER_HEAP_SIZE);
     }
 
     logger::init().unwrap();
