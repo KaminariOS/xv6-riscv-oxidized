@@ -15,6 +15,7 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
     // let test = String::new("test");
     let pid = fork();
     let test_times = 50000000;
+    let max_byte = 10 * 1024 * 1024 * 1024;
 
     // let string = String::from("Test heap string");
     // println!("{}", string);
@@ -23,7 +24,6 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
             if pid != 0 {
                 // let () =
                 let mut total = 0;
-                let max_byte = 10 * 1024 * 1024;
 
                 let start_time = uptime();
                 loop {
@@ -49,7 +49,6 @@ pub extern "C" fn main(_argc: i32, _argv: *const *const u8) -> i32 {
                 // assert_eq!(get_count(index), test_times * 2);
             } else {
                 let mut total = 0;
-                let max_byte = 10 * 1024 * 1024;
                 loop {
                     let (len, base) = ringbuf_start_read(index);
                     let slice = core::slice::from_raw_parts(base as *const u8, len);
